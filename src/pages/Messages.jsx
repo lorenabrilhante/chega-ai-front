@@ -1,3 +1,5 @@
+import Sidebar from "../components/Sidebar";
+
 export default function Messages() {
   const chats = [
     {
@@ -29,59 +31,7 @@ export default function Messages() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-100 via-green-100 to-yellow-100 p-3 gap-3 overflow-hidden">
 
-      {/* SIDEBAR ESQUERDA */}
-      <aside className="w-60 p-5 flex flex-col gap-6 bg-white/50 rounded-3xl shadow-xl backdrop-blur-xl border border-white/40">
-
-        <div className="text-2xl font-bold text-blue-600">
-          chega aí ✨
-        </div>
-
-        <nav className="flex flex-col gap-2 text-sm">
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            📍 mapa
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            📅 agenda
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            👥 comunidades
-          </button>
-
-          <button className="px-4 py-3 bg-blue-200 rounded-2xl text-left font-medium shadow-sm">
-            💬 mensagens
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            🏆 conquistas
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            👤 perfil
-          </button>
-
-        </nav>
-
-        {/* CARD */}
-        <div className="mt-auto bg-white/60 p-4 rounded-3xl shadow-lg border border-white/40">
-
-          <p className="text-blue-600 font-semibold text-sm">
-            converse mais
-          </p>
-
-          <p className="text-purple-500 text-xs mt-1">
-            faça novas conexões ✨
-          </p>
-
-          <button className="mt-3 w-full bg-gradient-to-r from-blue-500 via-cyan-400 to-green-400 text-white px-4 py-3 rounded-full text-sm shadow-lg font-medium">
-            iniciar chat
-          </button>
-
-        </div>
-
-      </aside>
+      <Sidebar active="/messages" />
 
       {/* MAIN */}
       <main className="flex-1 flex gap-3 overflow-hidden">

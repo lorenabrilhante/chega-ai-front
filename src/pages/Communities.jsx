@@ -1,3 +1,5 @@
+import Sidebar from "../components/Sidebar";
+
 export default function Communities() {
   const communities = [
     {
@@ -37,58 +39,7 @@ export default function Communities() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 p-3 gap-3">
 
-      {/* SIDEBAR */}
-      <aside className="w-60 bg-white/60 rounded-3xl p-5 shadow flex flex-col">
-
-        <h1 className="text-3xl font-bold text-purple-600 mb-8">
-          chega aí ✨
-        </h1>
-
-        <nav className="flex flex-col gap-2 text-sm">
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            📍 mapa
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            📅 agenda
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl bg-purple-200 text-purple-700 font-semibold">
-            👥 comunidades
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            💬 mensagens
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            🏆 conquistas
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            👤 perfil
-          </button>
-
-        </nav>
-
-        <div className="mt-auto bg-white/70 rounded-3xl p-5 text-center shadow">
-          <div className="text-4xl mb-2">🌎</div>
-
-          <p className="font-semibold text-purple-600">
-            encontre sua galera
-          </p>
-
-          <p className="text-xs text-gray-500 mt-1">
-            participe de comunidades perto de você
-          </p>
-
-          <button className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-2 rounded-full text-sm shadow">
-            explorar
-          </button>
-        </div>
-
-      </aside>
+      <Sidebar active="/communities" />
 
       {/* MAIN */}
       <main className="flex-1 flex flex-col gap-3">

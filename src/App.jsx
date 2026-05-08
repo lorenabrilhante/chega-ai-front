@@ -1,28 +1,20 @@
-// import GameMap from "./components/GameMap";
-// import EventCarousel from "./components/EventCarousel";
-
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import Messages from "./pages/Messages";
+import Agenda from "./pages/Agenda";
+import Communities from "./pages/Communities";
+import Profile from "./pages/Profile";
+import Achievements from "./pages/Achievements";
+
 export default function App() {
-  return <Home />;
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/agenda" element={<Agenda />} />
+      <Route path="/communities" element={<Communities />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/achievements" element={<Achievements />} />
+    </Routes>
+  );
 }
-
-// import Messages from "./pages/Messages";
-// export default function App() {
-//   return <Messages />;
-// }
-
-// import Agenda from "./pages/Agenda";
-// export default function App() {
-//   return <Agenda />;
-// }
-
-// import Communities from "./pages/Communities";
-// export default function App() {
-//   return <Communities />;
-// }
-
-// import Profile from "./pages/Profile";
-
-// export default function App() {
-//   return <Profile />;
-// }

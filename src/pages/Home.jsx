@@ -1,5 +1,6 @@
 import GameMap from "../components/GameMap";
 import EventCarousel from "../components/EventCarousel";
+import Sidebar from "../components/Sidebar";
 
 export default function Home() {
   const user = {
@@ -14,59 +15,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-100 via-green-100 to-yellow-100 p-3 gap-3">
 
-      {/* SIDEBAR ESQUERDA */}
-      <aside className="w-60 p-5 flex flex-col gap-6 bg-white/50 rounded-3xl shadow-xl backdrop-blur-xl border border-white/40">
-
-        <div className="text-2xl font-bold text-blue-600">
-          chega aí ✨
-        </div>
-
-        <nav className="flex flex-col gap-2 text-sm">
-
-          <button className="px-4 py-3 bg-blue-200 rounded-2xl text-left font-medium shadow-sm">
-            📍 mapa
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            📅 agenda
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            👥 comunidades
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            💬 mensagens
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            🏆 conquistas
-          </button>
-
-          <button className="px-4 py-3 hover:bg-white/70 rounded-2xl text-left transition">
-            👤 perfil
-          </button>
-
-        </nav>
-
-        {/* CARD */}
-        <div className="mt-auto bg-white/60 p-4 rounded-3xl shadow-lg border border-white/40">
-
-          <p className="text-blue-600 font-semibold text-sm">
-            convide amigos
-          </p>
-
-          <p className="text-purple-500 text-xs mt-1">
-            ganhe pontos extras ✨
-          </p>
-
-          <button className="mt-3 w-full bg-gradient-to-r from-blue-500 via-cyan-400 to-green-400 text-white px-4 py-3 rounded-full text-sm shadow-lg font-medium">
-            convidar
-          </button>
-
-        </div>
-
-      </aside>
+      <Sidebar active="/" />
 
       {/* MAIN */}
       <main className="flex-1 flex flex-col gap-3 min-h-0">
