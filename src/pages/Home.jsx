@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import GameMap from "../components/GameMap";
 import EventCarousel from "../components/EventCarousel";
 import Sidebar from "../components/Sidebar";
 
 export default function Home() {
+  const navigate = useNavigate();
   const user = {
     nome: "Beth",
     nivel: 12,
@@ -48,7 +50,10 @@ export default function Home() {
             placeholder="buscar eventos..."
           />
 
-          <button className="bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-500 text-white px-5 py-3 rounded-full text-sm shadow-lg font-medium">
+          <button
+            onClick={() => navigate("/criar-evento")}
+            className="bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-500 text-white px-5 py-3 rounded-full text-sm shadow-lg font-medium hover:scale-[1.02] transition"
+          >
             + criar evento
           </button>
 

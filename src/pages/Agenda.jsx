@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
 export default function Agenda() {
+  const navigate = useNavigate();
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-100 via-green-100 to-yellow-100 p-3 gap-3">
 
@@ -37,7 +39,10 @@ export default function Agenda() {
             placeholder="Buscar eventos..."
           />
 
-          <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm shadow">
+          <button
+            onClick={() => navigate("/criar-evento")}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm shadow hover:scale-[1.02] transition"
+          >
             + criar evento
           </button>
 

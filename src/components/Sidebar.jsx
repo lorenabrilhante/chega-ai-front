@@ -44,6 +44,12 @@ export default function Sidebar({ active }) {
         <button className="mt-3 w-full bg-gradient-to-r from-blue-500 via-cyan-400 to-green-400 text-white px-4 py-3 rounded-full text-sm shadow-lg font-medium">
           convidar
         </button>
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-2 w-full bg-white/70 px-4 py-3 rounded-full text-sm font-medium text-gray-600 hover:bg-white transition"
+        >
+          sair
+        </button>
       </div>
     </aside>
   );
