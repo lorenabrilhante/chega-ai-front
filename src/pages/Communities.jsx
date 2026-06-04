@@ -1,216 +1,196 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+
 export default function Communities() {
-  const communities = [
-    {
-      name: "Gamers Fortaleza 🎮",
-      members: "1.2k membros",
-      desc: "campeonatos, amizades e noites de gameplay",
-      color: "from-purple-400 to-pink-400",
-      image:
-        "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop",
-    },
-    {
-      name: "Study Friends 📚",
-      members: "830 membros",
-      desc: "grupo pra estudar junto e compartilhar metas",
-      color: "from-blue-400 to-cyan-400",
-      image:
-        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
-    },
-    {
-      name: "Café & Conversa ☕",
-      members: "540 membros",
-      desc: "lugares aconchegantes e papo aleatório",
-      color: "from-orange-300 to-yellow-300",
-      image:
-        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop",
-    },
-    {
-      name: "Indie Music 🎵",
-      members: "920 membros",
-      desc: "descubra artistas e eventos alternativos",
-      color: "from-pink-400 to-rose-400",
-      image:
-        "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1200&auto=format&fit=crop",
-    },
-  ];
+  const navigate = useNavigate();
+  const [communities, setCommunities] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [isVisitor, setIsVisitor] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Load session and fallback users on mount
+  useEffect(() => {
+    // 1. Load logged user from storage
+    const savedSession = localStorage.getItem("chega_ai_user") || sessionStorage.getItem("chega_ai_user");
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        const userObj = session?.usuario || session;
+        if (userObj && userObj.id_usuario) {
+          setCurrentUser(userObj);
+          setIsVisitor(false);
+        }
+      } catch (e) {
+        console.error("Erro ao ler sessão do usuário", e);
+      }
+    }
+
+    // 2. Fetch users list for visitor simulation
+    fetch(`${import.meta.env.VITE_API_URL}/usuarios`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Falha ao buscar usuários");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setUsers(data);
+          if (!savedSession && data.length > 0) {
+            // default simulate first user
+            setCurrentUser(data[0]);
+          }
+        }
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Load communities for current (or simulated) user
+  useEffect(() => {
+    if (!currentUser && users.length === 0) return; // wait for session/users
+    const userId = currentUser?.id_usuario || (users[0] && users[0].id_usuario);
+    if (!userId) return;
+    setIsLoading(true);
+    fetch(`${import.meta.env.VITE_API_URL}/comunidades/explorar/${userId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Falha ao buscar comunidades");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) setCommunities(data);
+        else setCommunities([]);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
+  }, [currentUser, users]);
+
+  const handleJoin = async (comId) => {
+    if (!currentUser) {
+      setError("É necessário estar logado para participar.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const payload = {
+        id_usuario_membro: currentUser.id_usuario,
+        id_comunidade: comId,
+        funcao_membro: "membro",
+        dataentrada: new Date().toISOString(),
+      };
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/membros-comunidade`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Erro ao participar da comunidade");
+      // Optimistically update UI
+      setCommunities((prev) =>
+        prev.map((c) =>
+          c.id_comunidade === comId
+            ? { ...c, ja_participo: true, quantidade_membros: (c.quantidade_membros || 0) + 1 }
+            : c
+        )
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const userId = currentUser?.id_usuario || (users[0] && users[0].id_usuario);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 p-3 gap-3">
+      <Sidebar active="/communities" />
 
-      {/* SIDEBAR */}
-      <aside className="w-60 bg-white/60 rounded-3xl p-5 shadow flex flex-col">
-
-        <h1 className="text-3xl font-bold text-purple-600 mb-8">
-          chega aí ✨
-        </h1>
-
-        <nav className="flex flex-col gap-2 text-sm">
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            📍 mapa
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            📅 agenda
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl bg-purple-200 text-purple-700 font-semibold">
-            👥 comunidades
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            💬 mensagens
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            🏆 conquistas
-          </button>
-
-          <button className="text-left px-4 py-3 rounded-2xl hover:bg-white/70">
-            👤 perfil
-          </button>
-
-        </nav>
-
-        <div className="mt-auto bg-white/70 rounded-3xl p-5 text-center shadow">
-          <div className="text-4xl mb-2">🌎</div>
-
-          <p className="font-semibold text-purple-600">
-            encontre sua galera
-          </p>
-
-          <p className="text-xs text-gray-500 mt-1">
-            participe de comunidades perto de você
-          </p>
-
-          <button className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-2 rounded-full text-sm shadow">
-            explorar
-          </button>
-        </div>
-
-      </aside>
-
-      {/* MAIN */}
       <main className="flex-1 flex flex-col gap-3">
-
         {/* HEADER */}
         <header className="bg-white/60 rounded-3xl px-6 py-4 flex items-center gap-4 shadow">
-
           <nav className="flex gap-2 text-sm">
-
-            <button className="px-4 py-2 rounded-full hover:bg-white/70">
-              explorar
-            </button>
-
-            <button className="px-4 py-2 rounded-full hover:bg-white/70">
-              eventos
-            </button>
-
-            <button className="px-4 py-2 rounded-full bg-purple-200 text-purple-700 font-semibold">
-              comunidades
-            </button>
-
-            <button className="px-4 py-2 rounded-full hover:bg-white/70">
-              amigos
-            </button>
-
+            <button className="px-4 py-2 rounded-full hover:bg-white/70">explorar</button>
+            <button className="px-4 py-2 rounded-full hover:bg-white/70">eventos</button>
+            <button className="px-4 py-2 rounded-full bg-purple-200 text-purple-700 font-semibold">comunidades</button>
+            <button className="px-4 py-2 rounded-full hover:bg-white/70">amigos</button>
           </nav>
-
-          <input
-            type="text"
-            placeholder="buscar comunidades..."
-            className="flex-1 bg-white/70 rounded-full px-5 py-2 outline-none"
-          />
-
-          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-2 rounded-full shadow">
+          <input type="text" placeholder="buscar comunidades..." className="flex-1 bg-white/70 rounded-full px-5 py-2 outline-none" />
+          <button onClick={() => navigate("/criar-comunidade")}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-2 rounded-full shadow hover:scale-[1.02] transition">
             + criar comunidade
           </button>
-
         </header>
 
-        {/* HERO */}
-        <section className="relative overflow-hidden rounded-3xl p-8 min-h-[280px]
-        bg-linear-to-r from-purple-400 via-pink-300 to-yellow-200 shadow text-white">
-
-          <div className="absolute w-72 h-72 bg-white/20 rounded-full blur-3xl -top-20 -right-10"></div>
-
-          <div className="relative z-10">
-
-            <h2 className="text-3xl lg:text-5xl font-bold leading-tight max-w-4xl">
-              encontre pessoas com os mesmos interesses ✨
-            </h2>
-
-            <p className="mt-3 text-white/90 max-w-2xl">
-              participe de grupos locais, descubra eventos e conheça novas amizades.
-            </p>
-
-            <button className="mt-6 bg-white text-purple-600 px-6 py-3 rounded-full font-semibold shadow">
-              explorar comunidades
-            </button>
-
+        {/* Visitor simulation */}
+        {isVisitor && (
+          <div className="p-4 bg-amber-50/70 border border-amber-200/50 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm shadow-sm backdrop-blur-sm">
+            <div>
+              <span className="font-bold text-amber-800 block">✨ Modo de Simulação Ativo</span>
+              <span className="text-amber-700 text-xs">
+                Você está navegando como visitante. Escolha um usuário para simular o participante.
+              </span>
+            </div>
+            {users.length > 0 && (
+              <select
+                value={currentUser?.id_usuario || ""}
+                onChange={(e) => setCurrentUser(users.find((u) => u.id_usuario === Number(e.target.value)))}
+                className="bg-white border border-amber-200 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 outline-none shadow-inner cursor-pointer"
+              >
+                {users.map((u) => (
+                  <option key={u.id_usuario} value={u.id_usuario}>
+                    {u.nome_usuario} (@{u.apelido_usuario})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
+        )}
 
-        </section>
+        {/* Error alert */}
+        {error && (
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm font-bold text-rose-600 shadow-sm">
+            ⚠️ {error}
+          </div>
+        )}
 
         {/* GRID */}
-        <section className="grid grid-cols-2 gap-4 flex-1">
-
-          {communities.map((community, index) => (
-            <div
-              key={index}
-              className="bg-white/60 rounded-3xl overflow-hidden shadow hover:scale-[1.01] transition"
-            >
-
-              <div className="h-40 relative">
-
-                <img
-                  src={community.image}
-                  className="w-full h-full object-cover"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-
-                <div className="absolute bottom-4 left-4 text-white">
-
-                  <h3 className="font-bold text-xl">
-                    {community.name}
-                  </h3>
-
-                  <p className="text-sm opacity-90">
-                    {community.members}
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="p-5">
-
-                <p className="text-sm text-gray-600">
-                  {community.desc}
-                </p>
-
-                <div className="flex justify-between items-center mt-5">
-
-                  <div className={`px-3 py-1 rounded-full text-xs text-white bg-gradient-to-r ${community.color}`}>
-                    ativa agora
+        <section className="grid grid-cols-2 gap-4">
+          {isLoading ? (
+            <p className="text-center col-span-full">Carregando comunidades...</p>
+          ) : (
+            communities.map((community) => (
+              <div key={community.id_comunidade} className="bg-white/60 rounded-3xl overflow-hidden shadow hover:scale-[1.01] transition border border-white/30">
+                <div className="h-40 relative cursor-pointer" onClick={() => navigate(`/comunidade/${community.id_comunidade}`)}>
+                  <img src={community.fotocomunidade_url || community.image} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="font-bold text-xl hover:underline">{community.nome_comunidade}</h3>
+                    <p className="text-sm opacity-90">👥 {community.quantidade_membros || community.members} membros</p>
                   </div>
-
-                  <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm shadow">
-                    participar
-                  </button>
-
                 </div>
-
+                <div className="p-5">
+                  <p className="text-sm text-slate-500 cursor-pointer line-clamp-2" onClick={() => navigate(`/comunidade/${community.id_comunidade}`)}>
+                    {community.descricao || community.desc}
+                  </p>
+                  <div className="flex justify-between items-center mt-5">
+                    <div className={`px-3 py-1 rounded-full text-xs text-white bg-gradient-to-r ${community.temacor || community.color}`}>
+                      {community.ja_participo ? "Participando" : "Ativa agora"}
+                    </div>
+                    <button
+                      disabled={isLoading || community.ja_participo}
+                      onClick={() => handleJoin(community.id_comunidade)}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm shadow disabled:opacity-50"
+                    >
+                      {community.ja_participo ? "Participando" : "participar"}
+                    </button>
+                  </div>
+                </div>
               </div>
-
-            </div>
-          ))}
-
+            ))
+          )}
         </section>
-
       </main>
-
     </div>
   );
 }
