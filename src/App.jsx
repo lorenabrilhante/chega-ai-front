@@ -11,6 +11,7 @@ import CreateEvent from "./pages/CreateEvent";
 import CreateCommunity from "./pages/CreateCommunity";
 import EventDetail from "./pages/EventDetail";
 import CommunityDetail from "./pages/CommunityDetail";
+import UserProfile from "./pages/UserProfile";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/criar-comunidade" element={<CreateCommunity />} />
       <Route path="/evento/:id" element={<EventDetail />} />
       <Route path="/comunidade/:id" element={<CommunityDetail />} />
+      <Route path="/usuario/:id" element={<UserProfile />} />
     </Routes>
   );
 }

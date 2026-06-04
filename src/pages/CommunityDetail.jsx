@@ -53,6 +53,7 @@ export default function CommunityDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [isVisitor, setIsVisitor] = useState(true);
+  const [friendReqs, setFriendReqs] = useState({}); // { [id_usuario]: "pendente"|"aceito"|"sending" }
 
   const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200";
   const DEFAULT_COVER = "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=1200";
@@ -112,6 +113,24 @@ export default function CommunityDetail() {
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
   }, [id, currentUser]);
+
+  // Load friendship statuses
+  useEffect(() => {
+    if (!currentUser) return;
+    fetch(`${import.meta.env.VITE_API_URL}/usuarios/${currentUser.id_usuario}/amigos`)
+      .then(r => r.ok ? r.json() : [])
+      .then(friends => {
+        const map = {};
+        if (Array.isArray(friends)) {
+          friends.forEach(f => {
+            const s = f.status?.toLowerCase();
+            map[String(f.id_usuario)] = (s === "aceito" || s === "accepted") ? "aceito" : "pendente";
+          });
+        }
+        setFriendReqs(map);
+      })
+      .catch(() => {});
+  }, [currentUser]);
 
   // Handle Joining Community
   const handleJoin = async () => {
@@ -181,6 +200,31 @@ export default function CommunityDetail() {
       setJoining(false);
     }
   };
+
+  async function handleFriendRequest(userId) {
+    if (!currentUser) { navigate("/login"); return; }
+    setFriendReqs(prev => ({ ...prev, [String(userId)]: "sending" }));
+    try {
+      const payload = {
+        id_usuario: currentUser.id_usuario,
+        id_amigo: Number(userId),
+        status: "pendente",
+        datarequisicao: new Date().toISOString(),
+      };
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/amizades`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d?.error || "Erro");
+      }
+      setFriendReqs(prev => ({ ...prev, [String(userId)]: "pendente" }));
+    } catch (_) {
+      setFriendReqs(prev => { const n = {...prev}; delete n[String(userId)]; return n; });
+    }
+  }
 
   const coverUrl = comunidade?.fotocomunidade_url || DEFAULT_COVER;
   const isOwner = currentUser && comunidade && String(comunidade.id_usuario_dono) === String(currentUser.id_usuario);
@@ -404,18 +448,35 @@ export default function CommunityDetail() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {membros.map((mb) => {
                       const isMemberOwner = String(comunidade.id_usuario_dono) === String(mb.id_usuario);
+                      const isMe = currentUser && String(currentUser.id_usuario) === String(mb.id_usuario);
+                      const mbId = String(mb.id_usuario);
+                      const fStatus = friendReqs[mbId];
                       return (
                         <div
                           key={mb.id_usuario}
-                          className="bg-white/60 rounded-3xl p-4 flex flex-col items-center text-center gap-2.5 border border-white/30 shadow-sm relative overflow-hidden"
+                          className="bg-white/60 rounded-3xl p-4 flex flex-col items-center text-center gap-2.5 border border-white/30 shadow-sm hover:shadow-md relative overflow-hidden transition"
                         >
-                          <img
-                            src={mb.fotoperfil_url || DEFAULT_AVATAR}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
-                            alt={mb.nome_usuario}
-                          />
+                          {/* Avatar — clicável */}
+                          <button
+                            onClick={() => navigate(`/usuario/${mb.id_usuario}`)}
+                            className="relative group focus:outline-none"
+                            title={`Ver perfil de ${mb.nome_usuario}`}
+                          >
+                            <img
+                              src={mb.fotoperfil_url || DEFAULT_AVATAR}
+                              className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md group-hover:scale-105 transition"
+                              alt={mb.nome_usuario}
+                            />
+                            <span className="absolute inset-0 rounded-full ring-2 ring-purple-400 ring-offset-2 opacity-0 group-hover:opacity-100 transition" />
+                          </button>
+
                           <div className="flex flex-col">
-                            <span className="font-bold text-xs text-slate-800 line-clamp-1">{mb.nome_usuario}</span>
+                            <button
+                              onClick={() => navigate(`/usuario/${mb.id_usuario}`)}
+                              className="font-bold text-xs text-slate-800 hover:text-purple-600 transition line-clamp-1"
+                            >
+                              {mb.nome_usuario}
+                            </button>
                             <span className="text-[10px] font-semibold text-purple-500">@{mb.apelido_usuario}</span>
                           </div>
                           
@@ -433,6 +494,27 @@ export default function CommunityDetail() {
                           <span className="text-[9px] font-bold text-slate-400">
                             Social Nível {mb.nivelsocial || 1}
                           </span>
+
+                          {/* Friend action */}
+                          {!isMe && (
+                            fStatus === "aceito" ? (
+                              <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✅ Amigos</span>
+                            ) : fStatus === "pendente" || fStatus === "sending" ? (
+                              <span className="text-[9px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                {fStatus === "sending" ? "..." : "⏳ Pendente"}
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleFriendRequest(mb.id_usuario)}
+                                className="text-[10px] font-extrabold text-white bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 rounded-full hover:scale-105 active:scale-95 transition shadow-sm"
+                              >
+                                + Amigo
+                              </button>
+                            )
+                          )}
+                          {isMe && (
+                            <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">Você</span>
+                          )}
                         </div>
                       );
                     })}
